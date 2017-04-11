@@ -39,10 +39,28 @@ class NeuralNetwork(object):
             old_bias = self.biases            
             
             
-            for small_set in small_set_list:
-                self.train_smallset(small_set, learning_rate)
+            for small_data in small_set_list:
+                temp_biases = [np.zeros(bias.shape) for bias in self.biases]
+                temp_weights = [np.zeros(weight.shape) for weight in self.weights]
+        
+                for train_input, train_output in small_data:
+                    diff_term_temp_biases, diff_term_temp_weights = self.back_propagation(train_input, train_output)
+                    temp_biases = [new_bias+diff_new_bias for new_bias, diff_new_bias in zip(temp_biases, diff_term_temp_biases)]
+                    temp_weights = [new_weight+diff_new_weight for new_weight, diff_new_weight in zip(temp_weights, diff_term_temp_weights)]
+        
+        
+        
+                self.weights = [wt-(learning_rate/len(small_data))*new_wt
+                        for wt, new_wt in zip(self.weights, temp_weights)]
+        
+
+                self.biases = [bias-(learning_rate/len(small_data))*new_bias
+                       for bias, new_bias in zip(self.biases, temp_biases)]
+            
+            
+            
                 
-            print "Result in {0} epoch: {1} / {2}".format(j, self.get_results(test_data), test_set_size) + " " + threading.currentThread().getName()
+            print "Result in {0}: {1} / {2}".format(j, self.get_results(test_data), test_set_size) + " " + threading.currentThread().getName()
             self.accuracies.append(float(self.get_results(test_data)/test_set_size))
                 
                 
@@ -52,24 +70,7 @@ class NeuralNetwork(object):
         #plt.show()    
             
 
-    #Applies stochastic gradient descent on mini batch
-    def train_smallset(self, small_data, learning_rate):
-        temp_biases = [np.zeros(bias.shape) for bias in self.biases]
-        temp_weights = [np.zeros(weight.shape) for weight in self.weights]
-        
-        for train_input, train_output in small_data:
-            diff_term_temp_biases, diff_term_temp_weights = self.back_propagation(train_input, train_output)
-            temp_biases = [new_bias+diff_new_bias for new_bias, diff_new_bias in zip(temp_biases, diff_term_temp_biases)]
-            temp_weights = [new_weight+diff_new_weight for new_weight, diff_new_weight in zip(temp_weights, diff_term_temp_weights)]
-        
-        
-        
-        self.weights = [wt-(learning_rate/len(small_data))*new_wt
-                        for wt, new_wt in zip(self.weights, temp_weights)]
-        
 
-        self.biases = [bias-(learning_rate/len(small_data))*new_bias
-                       for bias, new_bias in zip(self.biases, temp_biases)]
         
 
 
